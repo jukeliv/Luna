@@ -1,0 +1,7 @@
+var x 2
+
+fun f(x) do
+    add(x x)
+end
+
+print(f(x))

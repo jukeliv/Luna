@@ -1,0 +1,10 @@
+fun fib(N) do
+    if or(equ(N 0) equ(n 1)) do
+        1
+    end
+    if not(or(equ(N 0) equ(n 1))) do
+        add(fib(sub(N 1)) fib(sub(N 2)))
+    end
+end
+
+print(fib(10))

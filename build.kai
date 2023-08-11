@@ -1,0 +1,6 @@
+output = "luna"
+flags = "-Wall -Wextra -O2"
+files = "src/utils.c src/lexer.c src/parser.c src/interpreter.c src/main.c"
+cc = "gcc"
+
+cmd(cc files "-o" output flags)
