@@ -1,31 +1,28 @@
 #include <stdio.h>
 #include <time.h>
-#include "lexer.h"
-#include "parser.h"
-#include "optimizer.h"
-#include "interpreter.h"
+#include <utils.h>
+#include <lexer.h>
+#include <parser.h>
+#include <optimizer.h>
+#include <interpreter.h>
 
-#define DEBUG_PRINT 0
+#define DEBUG_PRINT 1
 
-const char* read_file(const char* path)
+long ARGS[10] = {0};
+
+void debug_print(const char* msg, unsigned int argc)
 {
-    FILE* fp = fopen(path, "rb");
-
-    fseek(fp, 0, SEEK_END);
-    size_t fs = ftell(fp);
-    rewind(fp);
-
-    char* buf = malloc(fs+1);
-    if(fread(buf, sizeof(char), fs, fp) != fs)
+    #if DEBUG_PRINT
+    printf("DEBUG: %s ", msg);
+    for(unsigned int i = 0; i < argc; ++i)
     {
-        printf("ERROR: Coudln't read file %s\n", path);
-        return NULL;
+        printf("%lu ", ARGS[i]);
     }
-
-    buf[fs] = 0;
-    fclose(fp);
-    
-    return buf;
+    putchar('\n');
+    #else
+    UNUSED(msg);
+    UNUSED(argc);
+    #endif
 }
 
 int main(int argc, char** argv)
@@ -40,13 +37,13 @@ int main(int argc, char** argv)
         return 1;
     }
     
-    TokenArray tokens = Tokenize(read_file(*argv++));
+    TokenArray tokens = Tokenize(ReadFile(*argv++));
+
+    debug_print("File tokenized", 0);
 
     //Preprocessor for tokens
-    #if DEBUG_PRINT
-    printf("Preprocessor pass\n");
-    #endif
-
+    debug_print("Preprocessor pass", 0);
+    
     for(unsigned int i = 0; i < tokens.size; ++i)
     {
         Token tok = tokens.content[i];
@@ -59,7 +56,7 @@ int main(int argc, char** argv)
                     printf("ERROR: Load preprocessor takes an string as input to search file!\n");
                     exit(1);
                 }
-                const char* file = read_file(tokens.content[i+1].value);
+                const char* file = ReadFile(tokens.content[i+1].value);
 
                 TokenArray_Drop(&tokens, i);
                 TokenArray_Drop(&tokens, i);
@@ -74,9 +71,6 @@ int main(int argc, char** argv)
     }
 
     #if DEBUG_PRINT
-
-    printf("File tokenized\n");
-
     for(unsigned int i = 0; i < tokens.size; ++i)
     {
         Token tok = tokens.content[i];
@@ -129,40 +123,28 @@ int main(int argc, char** argv)
     #endif
 
     Expression ast = Parse_AST(tokens);
-    #if DEBUG_PRINT
-    printf("AST Generated\n");
-    #endif
+    debug_print("AST Generated", 0);
+    ARGS[0] = ast.e.Program.expressions.size;
+    debug_print("AST Size: ", 1);
 
     TokenArray_Free(&tokens);
 
-    #if DEBUG_PRINT
-    printf("No longer used tokens released\n");
-    #endif
+    debug_print("No longer used tokens released", 0);
 
     Optimize_AST(&ast);
 
-    #if DEBUG_PRINT
-    printf("AST Optimized\n");
-    #endif
-
-    #if DEBUG_PRINT
-    printf("AST Size: %d\n", ast.e.Program.expressions.size);
-    #endif
+    debug_print("AST Optimized", 0);
+    ARGS[0] = ast.e.Program.expressions.size;
+    debug_print("Optimized AST Size: ", 1);
 
     Initialize_Luna();
-    #if DEBUG_PRINT
-    printf("Initialized variables\n");
-    #endif
+    debug_print("Initialized variables", 0);
 
-    #if DEBUG_PRINT
     clock_t start = clock();
-    #endif
     
     Interpret_Program(ast);
 
-    #if DEBUG_PRINT
-    printf("Interpreted successfully\n");
-    printf("Time it took: %lu ms", clock()-start);
-    #endif
+    ARGS[0] = clock()-start;
+    debug_print("Interpretation Time: ", 1);
     return 0;
 }

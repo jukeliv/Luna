@@ -1,5 +1,5 @@
 output = "luna"
-flags = "-Wall -Wextra -O2"
+flags = "-I./include/ -Wall -Wextra -O2"
 files = "src/utils.c src/lexer.c src/parser.c src/optimizer.c src/interpreter.c src/main.c"
 cc = "gcc"
 

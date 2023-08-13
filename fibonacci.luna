@@ -1,15 +1,15 @@
 load "std.luna"
 
-fun fib(i n a b) do
-    if lt(i 0)
+fun fib(n a b) do
+    if gt(0 n)
         error "index can't be negative"
 
     var tmp a
     set a b
     set b add(b tmp)
     
-    if lt(i n)
-        fib(add(i 1) n a b)
+    if gt(n 1)
+        fib(sub(n 1) a b)
 end
 
-print(fib(1 1530 1 1))
+print(fib(9 1 1))
