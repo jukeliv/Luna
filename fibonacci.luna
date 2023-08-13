@@ -1,23 +1,15 @@
-fun mul(x y) do
-    var z 0
-    if gt(y 0) do
-        set z add(x mul(x sub(y 1)))
-    end
-    if lt(y 0) do
-        set z sub(0 mul(x sub(0 y)))
-    end
-    z
+load "std.luna"
+
+fun fib(i n a b) do
+    if lt(i 0)
+        error "index can't be negative"
+
+    var tmp a
+    set a b
+    set b add(b tmp)
+    
+    if lt(i n)
+        fib(add(i 1) n a b)
 end
 
-fun neg(x) do
-    var z 0
-    if gt(x 0) do
-        set z add(sub(1 2) neg(sub(x 1)))
-    end
-    if lt(x 0) do
-        set z add(1 neg(add(x 1)))
-    end
-    z
-end
-
-print(neg(3))
+print(fib(1 1530 1 1))

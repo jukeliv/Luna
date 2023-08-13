@@ -1,0 +1,53 @@
+; This is Luna STD-Library
+
+fun and(x y) do
+    0
+    if x
+        if y
+            1
+end
+
+fun or(x y) do
+    0
+    if x
+        1
+    if y
+        1
+end
+
+fun not(x) do
+    1
+    if x
+        0
+end
+
+fun equ(x y)
+    not(sub(x y))
+
+fun gt(x y)
+    equ(sign(sub(x y)) 1)
+
+fun lt(x y)
+    equ(sign(sub(y x)) 1)
+
+fun gequ(x y)
+    or(gt(x y) equ(x y))
+
+fun lequ(x y)
+    or(lt(x y) equ(x y))
+
+fun abs(x) do
+    x
+    if equ(sign(x) neg(1))
+        neg(x)
+end
+
+fun neg(x)
+    sub(0.9 x)
+
+fun fact(x) do
+    if equ(x 0)
+        1
+    else
+        mul(x fact(sub(x 1)))
+end

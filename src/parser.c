@@ -3,7 +3,7 @@
 void ArgumentArray_Initialize(ArgumentArray* array)
 {
     array->size = 0;
-    array->heap = 2;
+    array->heap = 1;
     array->content = malloc(array->heap*sizeof(Argument));
 }
 
@@ -20,7 +20,7 @@ void ArgumentArray_Push(ArgumentArray* array, Argument element)
 void ExpressionArray_Initalize(ExpressionArray* array)
 {
     array->size = 0;
-    array->heap = 2;
+    array->heap = 1;
     array->content = malloc(array->heap*sizeof(Expression));
 }
 
@@ -32,6 +32,33 @@ void ExpressionArray_Push(ExpressionArray* array, Expression element)
         array->content = realloc(array->content, array->heap*sizeof(Expression));
     }
     array->content[array->size++] = element;
+}
+
+void ExpressionArray_Drop(ExpressionArray* array, unsigned int index)
+{
+    for (unsigned int j = index; j < array->size - 1; j++) {
+        array->content[j] = array->content[j + 1];
+    }
+    array->size--;
+}
+
+void ExpressionArray_Insert(ExpressionArray* array, Expression element, unsigned int index)
+{
+    if (array->size + 1 > array->heap) {
+        // Increase the heap if necessary
+        unsigned int newHeap = array->heap == 0 ? 1 : array->heap * 2;
+        array->content = realloc(array->content, newHeap * sizeof(struct Expression));
+        array->heap = newHeap;
+    }
+    
+    // Shift elements to make space for the new element
+    for (unsigned int i = array->size; i > index; --i) {
+        array->content[i] = array->content[i - 1];
+    }
+    
+    // Insert the new element at the specified index
+    array->content[index] = element;
+    ++array->size;
 }
 
 Expression Expr_Program()
@@ -78,7 +105,8 @@ Expression Parse_Literal(Token tok)
             expr.e.Literal.value.num = strtod(tok.value, NULL);
         break;
         default:
-            //handle error
+            printf("ERROR: Token is not a literal!!!\n");
+            print_token(tok);
             exit(1);
         break;
     }
@@ -91,7 +119,7 @@ Expression Parse_DefVar(TokenArray* tokens)
     Token id = TokenArray_Shift(tokens);
     if(id.type != TOK_ID)
     {
-        //handle error
+        printf("ERROR: passing non-variable to \"var\"!!! ( %s )\n", id.value);
         exit(1);
     }
     return Expr_DefVar(id.value, Parse_Tokens(tokens));
@@ -102,7 +130,7 @@ Expression Parse_SetVar(TokenArray* tokens)
     Token id = TokenArray_Shift(tokens);
     if(id.type != TOK_ID)
     {
-        //handle error
+        printf("ERROR: passing non-variable to \"set\"!!! ( %s )\n", id.value);
         exit(1);
     }
     return Expr_SetVar(id.value, Parse_Tokens(tokens));
@@ -129,13 +157,53 @@ Expression Expr_DefFunction(const char* id, ArgumentArray arguments, Expression 
     return expr;
 }
 
+Expression Expr_Error(Token tok)
+{
+    if(tok.type != TOK_STR)
+    {
+        printf("ERROR: \"error\" takes as input a message to print when encountered!\n");
+        exit(1);
+    }
+    Expression expr;
+    expr.type = EXPR_Error;
+    expr.e.Error.line = tok.line;
+    expr.e.Error.msg = _strdup(tok.value);
+    return expr;
+}
+
+Expression Expr_Dll(unsigned int line, Token file, Token function)
+{
+    Expression expr;
+    if(file.type != TOK_STR)
+    {
+        printf("ERROR: Not passing an string as DLL-File input at line %d\n", line);
+        exit(1);
+    }
+    if(function.type != TOK_STR)
+    {
+        printf("ERROR: Not passing an string as DLL-FunctionName input at line %d\n", line);
+        exit(1);
+    }
+    expr.type = EXPR_Dll;
+    expr.e.dll.line = line;
+    expr.e.dll.file = _strdup(file.value);
+    expr.e.dll.function_name = _strdup(function.value);
+    return expr;
+}
+
 Expression Parse_DefFunction(TokenArray* tokens)
 {
     const char* id = TokenArray_Shift(tokens).value;
     ArgumentArray arguments;
     ArgumentArray_Initialize(&arguments);
 
-    TokenArray_Shift(tokens);
+    Token tok = TokenArray_Shift(tokens);
+
+    if(tok.type != TOK_OPEN_PARENTH)
+    {
+        printf("ERROR: Not opening parenthesis while declaring function \"%s\"\n", id);
+        exit(1);
+    }
 
     while(1)
     {
@@ -153,9 +221,7 @@ Expression Parse_DefFunction(TokenArray* tokens)
         ArgumentArray_Push(&arguments, (Argument){.id = _strdup(tok.value)});
     }
 
-    TokenArray_Shift(tokens);
-
-    return Expr_DefFunction(id, arguments, Parse_CodeBlock(tokens));
+    return Expr_DefFunction(id, arguments, Parse_Tokens(tokens));
 }
 
 Expression Parse_FunctionCall(const char* id, TokenArray* tokens)
@@ -246,12 +312,13 @@ Expression Parse_Conditional(TokenArray* tokens, ConditionalType type)
             expr.e.Conditional.expr = malloc(sizeof(Expression));
             *expr.e.Conditional.expr = Parse_Tokens(tokens);
         break;
+        case CONDITIONAL_Else:
+            expr.e.Conditional.expr = NULL;
+        break;
     }
     expr.e.Conditional.program = malloc(sizeof(Expression));
-    
-    TokenArray_Shift(tokens);
 
-    *expr.e.Conditional.program = Parse_CodeBlock(tokens);
+    *expr.e.Conditional.program = Parse_Tokens(tokens);
     return expr;
 }
 
@@ -269,6 +336,9 @@ Expression Parse_Tokens(TokenArray* tokens)
         break;
         case TOK_IF:
             return Parse_Conditional(tokens, CONDITIONAL_If);
+        break;
+        case TOK_ELSE:
+            return Parse_Conditional(tokens, CONDITIONAL_Else);
         break;
         case TOK_ID:
             switch(tokens->content[0].type)
@@ -291,6 +361,9 @@ Expression Parse_Tokens(TokenArray* tokens)
         case TOK_FUNCTION:
             //fun ID(arg) do arg end
             return Parse_DefFunction(tokens);
+        break;
+        case TOK_ERROR:
+            return Expr_Error(TokenArray_Shift(tokens));
         break;
         default:
             printf("TODO: Not implemented (%d : %s at line %d)!\n", tok.type, tok.value, tok.line);

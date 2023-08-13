@@ -1,5 +1,0 @@
-fun foo(bar) do
-    bar
-end
-
-print(foo(4))

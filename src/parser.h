@@ -5,13 +5,15 @@
 
 typedef enum ExpressionType
 {
+    EXPR_Error,
     EXPR_DefVar,
     EXPR_SetVar,
     EXPR_Conditional,
     EXPR_FunctionCall,
     EXPR_DefFunction,
     EXPR_Literal,
-    EXPR_Program
+    EXPR_Program,
+    EXPR_Dll
 }ExpressionType;
 
 typedef enum LiteralType
@@ -22,8 +24,9 @@ typedef enum LiteralType
 
 typedef enum ConditionalType
 {
-    CONDITIONAL_If
-    //TODO: add CONDITIONAL_Else and CONDITIONAL_ElseIf
+    CONDITIONAL_If,
+    CONDITIONAL_Else
+    //TODO: add CONDITIONAL_ElseIf
 }ConditionalType;
 
 struct Expression;
@@ -52,6 +55,11 @@ typedef struct Expression
     ExpressionType type;
     union
     {
+        struct
+        {
+            unsigned int line;
+            const char* msg;
+        }Error;
         struct
         {
             const char* id;
@@ -92,15 +100,29 @@ typedef struct Expression
         {
             ExpressionArray expressions;
         }Program;
+
+        struct
+        {
+            unsigned int line;
+            const char* file;
+            const char* function_name;
+        }dll;
     }e;
 }Expression;
+
+
+void print_first_token(TokenArray tokens);
+void print_token(Token tok);
 
 void ArgumentArray_Initialize(ArgumentArray* array);
 void ArgumentArray_Push(ArgumentArray* array, Argument element);
 
 void ExpressionArray_Initalize(ExpressionArray* array);
 void ExpressionArray_Push(ExpressionArray* array, Expression element);
+void ExpressionArray_Drop(ExpressionArray* array, unsigned int index);
+void ExpressionArray_Insert(ExpressionArray* array, Expression element, unsigned int index);
 
+Expression Expr_Error(Token tok);
 Expression Expr_Program();
 Expression Expr_DefVar(const char* id, Expression expr);
 Expression Expr_DefFunction(const char* id, ArgumentArray arguments, Expression program);

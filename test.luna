@@ -1,7 +1,35 @@
-var x 2
+load "std.luna"
 
-fun f(x) do
-    add(x x)
-end
+; AND
+print(and(0 0)) ; 0
+print(and(0 1)) ; 0
+print(and(1 0)) ; 0
+print(and(1 1)) ; 1
+; OR
+print(or(0 0)) ; 0
+print(or(0 1)) ; 1
+print(or(1 0)) ; 1
+print(or(1 1)) ; 1
+; NOT
+print(not(0)) ; 1
+print(not(1)) ; 0
+; EQUALS
+print(equ(0 1)) ; 0
+print(equ(1 1)) ; 1
+print(equ(1 0)) ; 0
+print(equ(neg(1) neg(1))) ; 1
+print(equ(neg(1) 0)) ; 0
 
-print(f(x))
+; GREATER THAN
+print(gt(5 3)) ; 1
+print(gt(neg(2) neg(5))) ; 1
+print(gt(2 2)) ; 0
+print(gt(3 7)) ; 0
+print(gt(neg(8) 0)) ; 0
+
+; LESS THAN
+print(lt(3 5)) ; 1
+print(lt(neg(5) neg(2))) ; 1
+print(lt(2 2)) ; 0
+print(lt(7 3)) ; 0
+print(lt(0 neg(8))) ; 0

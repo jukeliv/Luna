@@ -1,6 +1,7 @@
 #ifndef INTERPRETER_H_
 #define INTERPRETER_H_
 
+#include <math.h>
 #include "parser.h"
 
 typedef struct Variable
@@ -42,13 +43,13 @@ Function* FunctionArray_Find(FunctionArray* array, const char* id);
 
 void Initialize_Luna();
 
-Variable Interpret(Expression e);
+Variable Interpret(Expression e, ExpressionArray* array, unsigned int i);
 Variable Interpret_DefVar(Expression defvar);
 Variable Interpret_SetVar(Expression defvar);
 Variable Interpret_Literal(Expression literal);
 Variable Interpret_FunctionCall(Expression fcall);
 Variable Interpret_DefFunction(Expression deffunc);
-Variable Interpret_Conditional(Expression expr);
+Variable Interpret_Conditional(Expression expr, ExpressionArray* array, unsigned int i);
 Variable Interpret_Program(Expression program);
 
 #endif // INTERPRETER_H_

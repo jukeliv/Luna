@@ -1,0 +1,48 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Luna Programming Language",
+	"patterns": [
+		{ "include": "#comments" },
+		{ "include": "#keywords" },
+		{ "include": "#functions" },
+		{ "include": "#strings" },
+		{ "include": "numbers" }
+	],
+	"repository": {
+		"comments": {
+			"patterns": [
+				{
+					"begin": ";",
+					"end": "\\n",
+					"name": "comment.line.luna"
+				}
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{ "name": "keyword.control.luna", "match": "\\b(if|else)\\b" },
+				{ "name": "variable.luna", "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b" },
+				{ "name": "entity.name.function.luna", "match": "\\bfun\\b" },
+				{ "name": "entity.name", "match":"\\b(do|var|set)\\b"},
+				{ "name": "entity.name", "match":"\\bend"},
+				{ "name": "keyword.include.luna", "match": "\\bload\\b" }
+			]
+		},
+		"functions": {
+			"patterns": [
+				{ "match": "fun\\b", "name": "entity.name.function" }
+			]
+		},
+		"strings": {
+			"patterns": [
+				{ "begin": "\"", "end": "\"", "name": "string.quoted.double.luna", "captures": { "0": { "name": "punctuation.definition.string.begin.luna" }, "1": { "name": "punctuation.definition.string.end.luna" } } }
+			]
+		},
+		"numbers": {
+			"patterns": [
+				{ "name": "constant.numeric", "match": "[0-9_.]*$" }
+			]
+		}
+	},
+	"scopeName": "source.luna"
+}
